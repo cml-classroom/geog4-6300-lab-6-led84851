@@ -12,8 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Regression
 
 ```{r setup, message=FALSE, warning=FALSE}
+#install.packages(car)
 library(sf)
 library(tidyverse)
+library(tmap)
+library(car)
 ```
 
 **Overview:**
@@ -25,6 +28,8 @@ Let's import the dataset.
 
 ```{r}
 lab6_data<-st_read("data/aus_climate_inat.gpkg")
+
+lab6_data<-st_as_sf(lab6_data,coords=c(x="longitud",y="latitude"),crs=4326)
 ```
 
 The dataset for this lab is a 1 decimal degree hexagon grid that has aggregate statistics for a number of variables:
@@ -48,70 +53,137 @@ We will start by looking at data for 2020.
 **Question 1** _Create histograms for NDVI, max temp., min temp., rain, and population, and water in 2020 as well as elevation. Based on these graphs, assess the normality of these variables._
 
 ```{r}
-#Code goes here.
+hist(lab6_data$ndvi_20_med)
+ggplot(lab6_data,aes(sample=ndvi_20_med))+
+  stat_qq()+stat_qq_line()
+
+hist(lab6_data$maxtemp_20_med)
+ggplot(lab6_data,aes(sample=maxtemp_20_med))+
+  stat_qq()+stat_qq_line()
+
+hist(lab6_data$mintemp_20_med)
+ggplot(lab6_data,aes(sample=mintemp_20_med))+
+  stat_qq()+stat_qq_line()
+
+hist(lab6_data$rain_20_sum)
+ggplot(lab6_data,aes(sample=rain_20_sum))+
+  stat_qq()+stat_qq_line()
+
+hist(lab6_data$pop_20)
+ggplot(lab6_data,aes(sample=pop_20))+
+  stat_qq()+stat_qq_line()
+
+hist(lab6_data$water_20_pct)
+ggplot(lab6_data,aes(sample=water_20_pct))+
+  stat_qq()+stat_qq_line()
+
+hist(lab6_data$elev_med)
+ggplot(lab6_data,aes(sample=elev_med))+
+  stat_qq()+stat_qq_line()
 ```
 
-{Your assessment of the variables' normality goes here.}
+NDVI had a right skewed histogram and did not display normality. The max temperature histogram was left skewed and the qq line looked more normal than the NDVI line. Minimum temperature had a someone uniform histogram, slightly skewed left. It's qq line was somewhat normal as well. Rain was significantly skewed right. Population and water were extremely skewed right. Elevation was somewhat normal, slightly skewed right.
 
 **Question 2** _Use tmap to map these same variables using Jenks natural breaks as the classification method. For an extra challenge, use `tmap_arrange` to plot all maps in a single figure._
 
 ```{r}
+map1 <- tm_shape(lab6_data) +
+  tm_polygons("ndvi_20_med",size=.2,style = "jenks")
 
+map2 <- tm_shape(lab6_data) +
+  tm_polygons("maxtemp_20_med",size=.2,style = "jenks")
+
+map3 <- tm_shape(lab6_data) +
+  tm_polygons("mintemp_20_med",size=.2,style = "jenks")
+
+map4 <- tm_shape(lab6_data) +
+  tm_polygons("rain_20_sum",size=.2,style = "jenks")
+
+map5 <- tm_shape(lab6_data) +
+  tm_polygons("pop_20",size=.2,style = "jenks")
+
+map6 <- tm_shape(lab6_data) +
+  tm_polygons("water_20_pct",size=.2,style = "jenks")
+
+map7 <- tm_shape(lab6_data) +
+  tm_polygons("elev_med",size=.2,style = "jenks")
+
+tmap_arrange(map1, map2, map3, map4, map5, map6, map7)
 ```
 
 
 **Question 3** _Based on the maps from question 3, summarise major patterns you see in the spatial distribution of these data from any of your variables of interest. How do they appear to be associated with the NDVI variable?_
 
-{Your response here.}
+Overall, temperature seemed to increase as you go north. Rainfall was higher on coastal regions, as is the population. Elevation was higher in the southeast and western regions. The largest regions covered in water were more central and near the coast, mainly in the east. The NDVI variable seemed to follow a similar pattern to increased rainfall, near the coastal regions and especially in the southeast. This was also in the coolest part of the country. The vegetation does not seem to be associated with the other variables as much.
 
 **Question 4** _Create univariate models for each of the variables listed in question 1, with NDVI in 2020 as the dependent variable. Print a summary of each model. Write a summary of those results that indicates the direction, magnitude, and significance for each model coefficient._
 
 ```{r}
+model1<-lm(ndvi_20_med~maxtemp_20_med,data=lab6_data)
+summary(model1)
 
+model2<-lm(ndvi_20_med~mintemp_20_med,data=lab6_data)
+summary(model2)
+
+model3<-lm(ndvi_20_med~rain_20_sum,data=lab6_data)
+summary(model3)
+
+model4<-lm(ndvi_20_med~pop_20,data=lab6_data)
+summary(model4)
+
+model5<-lm(ndvi_20_med~water_20_pct,data=lab6_data)
+summary(model5)
+
+model6<-lm(ndvi_20_med~elev_med,data=lab6_data)
+summary(model6)
 ```
 
-{Discussion here}
+For every one unit increase of median maximum temperature 2020, NDVI decreases by 0.013, which is somewhat high. The p-value for the slope indicates the relationship is highly significant. The R-squared value is somewhat low (0.21), meaning NDVI cannot be heavily explained by maximum temp. 
+For every one unit increase of median minimum temperature 2020, NDVI decreases by 0.012. This is very similar to the maximum temperature variable, so it is likely these two variables have similar trends with NDVI. It was statistically significant and the R-squared value was also low (0.14).
+For every one unit increase in rainfall 2020, NDVI increases by 9.124e-07, which is pretty small. This value was statistically significant and the R-squared value was somewhat high (0.43), therefore NDVI can be somewhat explained by rainfall. 
+For every one unit increase in population, NDVI increases by 1.500e-06, which is very small. The value is statistically significant. The R-squared value is somewhat low (0.12) which means we cannot say that NDVI is explained by population.
+For every one unit increase of percentage of land covered by water, NDVI decreases by 0.18, which is a somewhat high increase. The p-value level is high, so there is insufficient evidence that these two variables are associated. 
+For every one unit increase of elevation, NDVI increases by 1.787e-04. The relationship is highly significant although R-squared value is somewhat low, meaning we cannot say that NDVI can be explained by elevation.
 
 **Question 5** _Create a multivariate regression model with the variables of interest, choosing EITHER max or min temperature (but not both) You may also choose to leave out any variables that were insignificant in Q4. Use the univariate models as your guide. Call the results._
 
 ```{r}
-#Code goes here
+model_all<-lm(ndvi_20_med~maxtemp_20_med + rain_20_sum + pop_20 + elev_med, data = lab6_data)
+summary(model_all)
 ```
 
 **Question 6** _Summarize the results of the multivariate model. What are the direction, magnitude, and significance of each coefficient? How did it change from the univariate models you created in Q4 (if at all)? What do the R2 and F-statistic values tell you about overall model fit?_
 
-{Response goes here}
+The variables follow a similar pattern to the univariate models in terms of direction. The magnitude for the variables decreased a little. They are still statistically significant, except the population variable rised some. The R-squared value increased to 0.64, which means the data is more reliable and NDVI is pretty well explained by the variables. The F-statistic value is highly significant so the model can explain the variation in NDVI. 
 
 **Question 7** _Use a histogram and a map to assess the normality of residuals and any spatial autocorrelation. Summarise any notable patterns that you see._
 
 ```{r}
-#Code goes here
+residuals <- residuals(model_all)
+hist(residuals)
 ```
 
-{Summary goes here}
+The histogram displays a somewhat normal distribution in a specific region, it looks like there is some values further to the left so the data is skewed left. 
 
 **Question 8** _Assess any issues with multicollinearity or heteroskedastity in this model using the techniques shown in class. Run the appropriate tests and explain what their results show you._
 
 ```{r}
-#Code goes here
+vif(model_all)
 ```
 
-{Interpretation goes here}
+The values in the model are all below 5, indicating there is no multicollinearity or correlation between two variables.  
 
 **Question 9** _How would you summarise the results of this model in a sentence or two? In addition, looking at the full model and your diagnostics, do you feel this is a model that provides meaningful results? Explain your answer._
 
-```{r}
-Discussion here
-```
-
+The model is reliable since it shows no multicollinearity, as all the values are below 5. The variables are all statistically significant so the model provides meaningful results.
 
 **Disclosure of assistance:** _Besides class materials, what other sources of assistance did you use while completing this lab? These can include input from classmates, relevant material identified through web searches (e.g., Stack Overflow), or assistance from ChatGPT or other AI tools. How did these sources support your own learning in completing this lab?_
 
-{Response here.}
+I used Google to help me undertstand the meaning of multicollinearity. I also used ChatGPT to figure out how to take the residuals from the data to create the histogram.
 
 **Lab reflection:** _How do you feel about the work you did on this lab? Was it easy, moderate, or hard? What were the biggest things you learned by completing it?_
 
-{Discussion here.}
+The lab was moderately difficult, I learned more about how to read and interpret the summary from the models.
 
 
 **Challenge question**
@@ -120,10 +192,21 @@ Discussion here
 Create a first difference model. To do that, subtract the values in 2000 from the values in 2020 for each variable for which that is appropriate. Then create a new model similar to the one you created in question 5, but using these new variables showing the *change in values* over time. Call the results of the model, and interpret the results in the same ways you did above. Also chart and map the residuals to assess model error. Finally, write a short section that summarises what, if anything, this model tells you. 
 
 ```{r}
+maxtemp_dif <- lab6_data$maxtemp_20_med - lab6_data$maxtemp_00_med
+mintemp_dif <- lab6_data$mintemp_20_med - lab6_data$mintemp_00_med
+rain_dif <- lab6_data$rain_20_sum - lab6_data$rain_00_sum
+ndvi_dif <- lab6_data$ndvi_20_med -  lab6_data$ndvi_00_med
+water_dif <- lab6_data$water_20_pct - lab6_data$water_00_pct
+pop_dif <- lab6_data$pop_20 - lab6_data$pop_00
 
+model_all2 <- lm(ndvi_dif ~ maxtemp_dif + mintemp_dif + rain_dif + water_dif + pop_dif, data = lab6_data)
+summary(model_all2)
+
+residuals2 <- residuals(model_all2)
+hist(residuals2)
 ```
 
-
+Maximum temperature and rainfall difference has a positive relationship with NDVI difference. Minimum temperature, water, and population difference all have a negative relationship with NDVI difference. The negative relationship indicates that these variables have increased from 2000 to 2020 while the positive relationship suggest the variables have decreased from 2000 to 2020. Changes in minimum temperature and rainfall both were statistically significant, meaning they are the most reliable variables. The R-squared value is somewhat small so the model only explains 10.61% of variation of the NDVI difference. The model is not reliable to detect variability. The F-statistic value however is statistically significant.
 
 
 #Option 2
