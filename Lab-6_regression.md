@@ -458,14 +458,32 @@ patterns that you see.*
 
 ``` r
 residuals <- residuals(model_all)
+lab6_data$residuals<-residuals(model_all)
 hist(residuals)
 ```
 
 ![](Lab-6_regression_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
+``` r
+tm_shape(lab6_data) +
+  tm_dots("residuals", size=.2)
+```
+
+    ## Variable(s) "residuals" contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.
+
+![](Lab-6_regression_files/figure-gfm/unnamed-chunk-7-2.png)<!-- -->
+
 The histogram displays a somewhat normal distribution in a specific
 region, it looks like there is some values further to the left so the
-data is skewed left.
+data is skewed left. The residuals displayed on the map show a couple
+strong negative values in the southeast and north east region. There are
+also some positive values in the southeast. Overall, the residuals are
+normal with some slightly negative ones clustered throughout. The
+negative residuals mean the model overestimates the predictions while
+the positive ones mean the model underestimates. The residuals seem to
+be present in more urban areas, meaning this affects how the other
+variables act. Overall, the negative residuals are clustered but are
+also located nearby the positive residuals which are clustered.
 
 **Question 8** *Assess any issues with multicollinearity or
 heteroskedastity in this model using the techniques shown in class. Run
@@ -478,8 +496,35 @@ vif(model_all)
     ## maxtemp_20_med    rain_20_sum         pop_20       elev_med 
     ##       1.098705       1.078449       1.173863       1.009305
 
+``` r
+library(lmtest)
+```
+
+    ## Warning: package 'lmtest' was built under R version 4.4.2
+
+    ## Loading required package: zoo
+
+    ## 
+    ## Attaching package: 'zoo'
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     as.Date, as.Date.numeric
+
+``` r
+bptest(model_all)
+```
+
+    ## 
+    ##  studentized Breusch-Pagan test
+    ## 
+    ## data:  model_all
+    ## BP = 122.21, df = 4, p-value < 2.2e-16
+
 The values in the model are all below 5, indicating there is no
-multicollinearity or correlation between two variables.
+multicollinearity or correlation between two variables. The model
+indicates there is heteroskedastity since the p-value is very small. The
+BP value is quite large, meaning there is stronger heteroskedastity.
 
 **Question 9** *How would you summarise the results of this model in a
 sentence or two? In addition, looking at the full model and your
@@ -488,7 +533,11 @@ results? Explain your answer.*
 
 The model is reliable since it shows no multicollinearity, as all the
 values are below 5. The variables are all statistically significant so
-the model provides meaningful results.
+the model provides meaningful results. The model shows strong
+heteroskedastity, so we cannot say the predictions are fully reliable.
+Overall, we can conclude a higher NDVI was primarily associated with
+higher rainfall. Lower NDVI was also associated with higher
+temperatures.
 
 **Disclosure of assistance:** *Besides class materials, what other
 sources of assistance did you use while completing this lab? These can
@@ -562,17 +611,18 @@ hist(residuals2)
 
 ![](Lab-6_regression_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
-Maximum temperature and rainfall difference has a positive relationship
-with NDVI difference. Minimum temperature, water, and population
-difference all have a negative relationship with NDVI difference. The
-negative relationship indicates that these variables have increased from
-2000 to 2020 while the positive relationship suggest the variables have
-decreased from 2000 to 2020. Changes in minimum temperature and rainfall
-both were statistically significant, meaning they are the most reliable
-variables. The R-squared value is somewhat small so the model only
-explains 10.61% of variation of the NDVI difference. The model is not
-reliable to detect variability. The F-statistic value however is
-statistically significant.
+Rainfall difference has a positive relationship with NDVI difference
+meaning that as rainfall increases over time, NDVI increases as well.
+Minimum temperature difference has a negative relationship with NDVI
+difference meaning that as the minimum temperature increases over time,
+NDVI decreases. The water, population, and maximum temperature
+differences all are not statistically significant, meaning we cannot
+make any conclusions based on the values. Changes in minimum temperature
+and rainfall both were statistically significant, meaning they are the
+only reliable variables. The R-squared value is somewhat small so the
+model only explains 10.61% of variation of the NDVI difference. The
+model is not reliable to detect variability. The F-statistic value,
+however, is statistically significant.
 
 \#Option 2 The animal data included in this dataset is an example of
 count data, and usually we would use a Poisson or similar model for that

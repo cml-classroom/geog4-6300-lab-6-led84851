@@ -160,22 +160,27 @@ The variables follow a similar pattern to the univariate models in terms of dire
 
 ```{r}
 residuals <- residuals(model_all)
+lab6_data$residuals<-residuals(model_all)
 hist(residuals)
+tm_shape(lab6_data) +
+  tm_dots("residuals", size=.2)
 ```
 
-The histogram displays a somewhat normal distribution in a specific region, it looks like there is some values further to the left so the data is skewed left. 
+The histogram displays a somewhat normal distribution in a specific region, it looks like there is some values further to the left so the data is skewed left. The residuals displayed on the map show a couple strong negative values in the southeast and north east region. There are also some positive values in the southeast. Overall, the residuals are normal with some slightly negative ones clustered throughout. The negative residuals mean the model overestimates the predictions while the positive ones mean the model underestimates. The residuals seem to be present in more urban areas, meaning this affects how the other variables act. Overall, the negative residuals are clustered but are also located nearby the positive residuals which are clustered. 
 
 **Question 8** _Assess any issues with multicollinearity or heteroskedastity in this model using the techniques shown in class. Run the appropriate tests and explain what their results show you._
 
 ```{r}
 vif(model_all)
+library(lmtest)
+bptest(model_all)
 ```
 
-The values in the model are all below 5, indicating there is no multicollinearity or correlation between two variables.  
+The values in the model are all below 5, indicating there is no multicollinearity or correlation between two variables. The model indicates there is heteroskedastity since the p-value is very small. The BP value is quite large, meaning there is stronger heteroskedastity.
 
 **Question 9** _How would you summarise the results of this model in a sentence or two? In addition, looking at the full model and your diagnostics, do you feel this is a model that provides meaningful results? Explain your answer._
 
-The model is reliable since it shows no multicollinearity, as all the values are below 5. The variables are all statistically significant so the model provides meaningful results.
+The model is reliable since it shows no multicollinearity, as all the values are below 5. The variables are all statistically significant so the model provides meaningful results. The model shows strong heteroskedastity, so we cannot say the predictions are fully reliable. Overall, we can conclude a higher NDVI was primarily associated with higher rainfall. Lower NDVI was also associated with higher temperatures.
 
 **Disclosure of assistance:** _Besides class materials, what other sources of assistance did you use while completing this lab? These can include input from classmates, relevant material identified through web searches (e.g., Stack Overflow), or assistance from ChatGPT or other AI tools. How did these sources support your own learning in completing this lab?_
 
@@ -206,7 +211,7 @@ residuals2 <- residuals(model_all2)
 hist(residuals2)
 ```
 
-Maximum temperature and rainfall difference has a positive relationship with NDVI difference. Minimum temperature, water, and population difference all have a negative relationship with NDVI difference. The negative relationship indicates that these variables have increased from 2000 to 2020 while the positive relationship suggest the variables have decreased from 2000 to 2020. Changes in minimum temperature and rainfall both were statistically significant, meaning they are the most reliable variables. The R-squared value is somewhat small so the model only explains 10.61% of variation of the NDVI difference. The model is not reliable to detect variability. The F-statistic value however is statistically significant.
+Rainfall difference has a positive relationship with NDVI difference meaning that as rainfall increases over time, NDVI increases as well. Minimum temperature difference has a negative relationship with NDVI difference meaning that as the minimum temperature increases over time, NDVI decreases. The water, population, and maximum temperature differences all are not statistically significant, meaning we cannot make any conclusions based on the values. Changes in minimum temperature and rainfall both were statistically significant, meaning they are the only reliable variables. The R-squared value is somewhat small so the model only explains 10.61% of variation of the NDVI difference. The model is not reliable to detect variability. The F-statistic value, however, is statistically significant.
 
 
 #Option 2
